@@ -2,9 +2,9 @@
 
 ## Executive Summary
 
-This document captures the initial technical discovery required to implement Static Application Security Testing (SAST) scans across an application estate that includes Java/Kotlin, JavaScript/TypeScript, Python, and C#/.NET. The intended audience is engineering and security leadership.
+This document captures the initial technical discovery and pilot implementation premise required to implement Static Application Security Testing (SAST) scans across an application estate that includes Java/Kotlin, JavaScript/TypeScript, Python, and C#/.NET. The intended audience is engineering and security leadership.
 
-The current deliverable is discovery only. It does not recommend a specific vendor or define an implementation plan. Its purpose is to establish the technical assessment criteria, operating constraints, key risks, and leadership decisions required before execution.
+The current deliverable covers discovery plus preparation for a pilot SAST scan. It does not recommend a specific vendor or define a full enterprise rollout plan. Its purpose is to establish the technical assessment criteria, operating constraints, pilot guardrails, key risks, and leadership decisions required before pilot execution.
 
 At this stage, the confirmed direction is:
 
@@ -13,8 +13,9 @@ At this stage, the confirmed direction is:
 - the CI/CD environment is mixed rather than standardized on a single platform
 - SaaS-based delivery is acceptable
 - OWASP Top 10 and CWE coverage expectations should frame the security discussion
+- the first execution milestone should be a pilot SAST scan on representative repositories
 
-The primary gap is not conceptual. It is evidentiary. The organization still needs a verified inventory of repositories, build systems, CI/CD workflows, ownership boundaries, and current secure SDLC controls before a credible implementation or tool-selection phase can begin.
+The primary gap is not conceptual. It is evidentiary. The organization still needs a verified inventory of repositories, build systems, CI/CD workflows, ownership boundaries, pilot candidates, and current secure SDLC controls before a credible pilot implementation, broader implementation, or tool-selection phase can begin.
 
 ## Document Objective
 
@@ -22,8 +23,21 @@ This document is intended to:
 
 - define the technical and operational discovery needed for SAST adoption
 - explain the cross-language and cross-platform considerations that affect implementation feasibility
-- identify the decisions leadership must make before execution
+- identify the minimum conditions required to implement a pilot SAST scan
+- identify the decisions leadership must make before pilot execution
 - establish boundaries for what is included in this phase and what is deferred
+
+## Pilot Implementation Premise
+
+The first implementation milestone should be a pilot SAST scan rather than an estate-wide rollout. The pilot is expected to validate the delivery model, developer workflow impact, and governance readiness before the organization commits to broader adoption.
+
+The pilot should be designed to:
+
+- run on a limited number of representative repositories rather than the full portfolio
+- measure scan duration, signal quality, and developer workflow impact in real CI conditions
+- confirm that findings can be surfaced, triaged, suppressed, and reported end to end
+- identify the minimum tuning and configuration needed before scaling
+- produce a clear go, tune, or stop recommendation for the next phase
 
 ## Confirmed Scope and Assumptions
 
@@ -34,12 +48,13 @@ The following discovery inputs are already confirmed:
 | Topic | Current position |
 | --- | --- |
 | Audience | Engineering leadership and security leadership |
-| Deliverable type | Discovery and assessment only |
+| Deliverable type | Discovery, assessment, and pilot implementation premise |
 | Tool posture | Vendor-neutral |
 | Languages in scope | Java/Kotlin, JavaScript/TypeScript, Python, C#/.NET |
 | CI/CD posture | Multiple or mixed platforms |
 | Hosting assumption | SaaS tools are acceptable |
 | Security framing | OWASP Top 10 and CWE coverage |
+| Initial implementation target | Pilot SAST scan on representative repositories |
 
 ### Working Assumptions
 
@@ -49,6 +64,7 @@ The following assumptions are used to shape the discovery until estate data is c
 - at least part of the estate uses pull-request based change control
 - different teams may have different build systems or levels of pipeline maturity
 - leadership will need to balance security coverage against developer workflow impact
+- the first implementation should stay limited to a pilot scope rather than full estate coverage
 
 These assumptions should be validated during the evidence-gathering phase.
 
@@ -65,6 +81,7 @@ Required evidence:
 - repository criticality or tiering
 - service type, such as API, web application, batch job, or library
 - ownership by team or business domain
+- pilot candidacy for each repository or application group
 
 Why this matters:
 
@@ -79,6 +96,7 @@ Required evidence:
 - package restore requirements and any private registries
 - presence of monorepos, generated code, or shared libraries
 - average build duration and common causes of build instability
+- availability of CI runner or container support for pilot execution
 
 Why this matters:
 
@@ -93,6 +111,7 @@ Required evidence:
 - pull-request validation patterns versus branch or scheduled jobs
 - current policy gating in pipelines
 - artifact retention and results publishing patterns
+- ability to publish scan results in PRs, artifacts, or code scanning views during the pilot
 
 Why this matters:
 
@@ -108,14 +127,44 @@ Required evidence:
 - remediation ownership model
 - exception or waiver process
 - reporting requirements for leadership or audit stakeholders
+- pilot support owner and escalation path
 
 Why this matters:
 
 - SAST adoption fails if findings exist without a clear operating model for triage, ownership, and exception handling
 
+## Pilot Scope Definition Requirements
+
+The documentation must explicitly support implementation of a pilot SAST scan. That requires more than generic discovery. It requires a clear definition of pilot scope, success criteria, and operational guardrails.
+
+### Candidate Pilot Selection Criteria
+
+- the repository is actively maintained and has a clear owner
+- the CI pipeline is stable enough to measure scan impact reliably
+- the codebase is representative of a major language or framework combination in the estate
+- the team is willing to participate in triage and feedback during the pilot
+- the pipeline can publish results or artifacts without major platform-specific workarounds
+
+### Pilot Success Criteria
+
+- the scan runs reliably in the selected CI flow
+- findings are surfaced with meaningful severity and confidence categories
+- scan duration stays within the agreed pilot time budget
+- the participating team can review and triage results in its normal workflow
+- false positives, suppressions, and exceptions remain operationally manageable
+- the pilot produces a clear recommendation on whether to scale, tune, or stop
+
+### Pilot Operating Guardrails
+
+- start non-blocking unless leadership explicitly approves a stricter posture
+- limit initial scope to representative repositories instead of portfolio-wide coverage
+- define an owner for configuration, results review, and support
+- preserve delivery stability by defining a fallback path if the scan fails or produces unacceptable noise
+- timebox the pilot so results are reviewed quickly and decisions are not deferred indefinitely
+
 ## Technical Assessment Criteria
 
-The future SAST approach should be assessed against the following technical criteria.
+The future SAST approach and the pilot implementation model should be assessed against the following technical criteria.
 
 ### Cross-Language Expectations
 
@@ -127,6 +176,7 @@ Minimum expectations across the estate:
 - output that can be published in a portable format such as SARIF
 - usable scan modes for both baseline assessment and pull-request feedback
 - policy controls that can distinguish severity, confidence, and rule categories
+- enough configuration flexibility to support a controlled pilot before estate-wide standardization
 
 ### Language-Specific Considerations
 
@@ -192,7 +242,7 @@ Discovery questions:
 
 ## Integration Architecture Patterns
 
-Because the CI/CD environment is mixed, the discovery should favor portable patterns rather than pipeline-specific implementation detail.
+Because the CI/CD environment is mixed, the pilot design should favor portable patterns rather than pipeline-specific implementation detail.
 
 ### Preferred Platform-Agnostic Patterns
 
@@ -201,6 +251,14 @@ Because the CI/CD environment is mixed, the discovery should favor portable patt
 - standardized results output, preferably SARIF or an equivalent machine-readable format
 - API-driven policy evaluation so enforcement logic is not hardcoded differently in each CI system
 - separate modes for pull-request scans, full baseline scans, and scheduled rescans
+
+### Pilot Implementation Guidance
+
+- start with one or a small number of representative repositories rather than attempting cross-portfolio coverage immediately
+- prefer non-blocking execution with result publication in the first iterations of the pilot
+- keep configuration sufficiently consistent across pilot repositories so scan behavior can be compared
+- validate results publication in the workflow the pilot team already uses, such as PR feedback, artifacts, or code scanning interfaces
+- define what happens when the scan fails, times out, or produces excessive noise before enabling the pilot in shared pipelines
 
 ### Integration Decision Areas
 
@@ -229,7 +287,7 @@ SAST is not only a scanning capability. It is an operating model. Discovery must
 
 ### Early-Stage Adoption Considerations
 
-For an initial rollout, the organization should expect a phased enforcement posture rather than immediate hard blocking across all repositories. This is not an implementation decision yet, but it is a discovery insight: the quality of early findings and the maturity of ownership processes usually determine whether blocking can succeed without causing excessive friction.
+For a pilot rollout, the organization should expect a phased enforcement posture rather than immediate hard blocking across all repositories. This is a pilot implementation premise: the quality of early findings and the maturity of ownership processes usually determine whether blocking can succeed without causing excessive friction.
 
 ## Risks and Tradeoffs
 
@@ -265,20 +323,22 @@ At the time of drafting, the following gaps remain open:
 - no CI/CD platform mapping has been documented by team or portfolio segment
 - no current-state remediation ownership model has been confirmed
 - no baseline strategy for existing findings has been chosen
+- no pilot repositories or participating teams have been nominated
+- no pilot success metrics or fallback posture have been defined
 
-These gaps do not block discovery documentation, but they do block a defensible implementation plan or vendor evaluation.
+These gaps do not block discovery documentation, but they do block a defensible pilot implementation, broader implementation plan, or vendor evaluation.
 
 ## Leadership Decisions Required
 
 Leadership should use this document to provide direction on the following decisions.
 
-### 1. Coverage Scope
+### 1. Pilot Coverage Scope
 
-Should SAST be introduced for all repositories, only tier-1 applications, or only new strategic development?
+Which repositories or application groups should participate in the pilot, and what makes them representative enough to inform a broader decision?
 
-### 2. Enforcement Posture
+### 2. Pilot Enforcement Posture
 
-Should the first implementation phase be informational only, warning-based, or blocking for selected severity levels?
+Should the pilot start as informational only, warning-based, or blocking for selected severity levels?
 
 ### 3. Ownership Model
 
@@ -288,51 +348,57 @@ Will AppSec, platform engineering, or application teams own operational triage a
 
 What level of additional build time, review noise, and policy overhead is acceptable in exchange for earlier vulnerability detection?
 
-### 5. Next-Phase Mandate
+### 5. Pilot Success and Exit Criteria
 
-Should the organization proceed to a formal product evaluation and implementation-planning phase after the evidence matrix is completed?
+What objective thresholds will define pilot success, such as acceptable scan duration, signal quality, and triage completion?
 
-## Validation Activities for the Next Phase
+### 6. Post-Pilot Mandate
 
-Once discovery evidence is complete, the execution team should validate feasibility with a controlled assessment rather than moving directly to enterprise rollout.
+Should the organization proceed to broader rollout, further tuning, or formal product evaluation after the pilot is completed?
 
-Recommended validation activities:
+## Pilot Implementation and Validation Activities
 
-1. select representative repositories from each in-scope language family
-2. test whether candidate approaches can produce useful findings aligned to OWASP and CWE expectations
-3. measure pull-request and full-scan duration impact against current pipeline baselines
-4. review a sample of high-severity findings with senior engineers to estimate true-positive and false-positive rates
-5. confirm that results can be surfaced in developer workflows without forcing platform-specific handling in each CI system
-6. verify that triage, suppression, and exception workflows are operational before enabling any blocking policy
+Once the minimum discovery evidence is complete, the execution team should validate feasibility by implementing a controlled pilot SAST scan rather than moving directly to enterprise rollout.
 
-## Recommended Next Discovery Actions
+Recommended pilot activities:
 
-The immediate next step is not product selection. It is evidence collection.
+1. select representative repositories and confirm participating teams and owners
+2. implement the pilot scan in the chosen CI flow using a non-blocking posture unless otherwise approved
+3. test whether the pilot approach produces useful findings aligned to OWASP and CWE expectations
+4. measure pull-request and full-scan duration impact against current pipeline baselines
+5. review a sample of high-severity findings with senior engineers to estimate true-positive and false-positive rates
+6. confirm that results can be surfaced in developer workflows without forcing platform-specific handling in each CI system
+7. verify that triage, suppression, exception handling, and reporting workflows are operational before considering any blocking policy
+
+## Recommended Next Actions
+
+The immediate next step is to complete the minimum evidence needed to launch a controlled pilot SAST scan.
 
 Recommended actions:
 
 1. complete the evidence matrix with repository, language, framework, build, and CI/CD data
-2. confirm current ownership and exception workflows with security and platform stakeholders
-3. identify a representative sample of repositories from each language family for future validation
-4. define what leadership considers acceptable signal quality and pipeline impact before any tool evaluation begins
+2. nominate pilot repositories and confirm participating teams and owners
+3. confirm ownership, exception workflows, and support paths with security and platform stakeholders
+4. define pilot success metrics, fallback rules, and acceptable pipeline impact before pilot execution begins
+5. execute the pilot and use its results to decide on broader rollout, tuning, or formal product evaluation
 
 ## Scope Boundaries and Exclusions
 
-This document excludes:
+This document includes pilot implementation scope and readiness criteria, but excludes:
 
 - vendor comparisons or product recommendations
-- implementation steps or CI examples
-- rollout sequencing and target dates
+- full enterprise implementation runbooks or CI examples for every platform
+- enterprise rollout sequencing and target dates
 - detailed remediation workflows
 - licensing or budget analysis
 
-These topics should be handled in later phases once discovery evidence is complete and leadership has confirmed the operating direction.
+These topics should be handled in later phases once discovery evidence is complete, the pilot has been executed, and leadership has confirmed the operating direction.
 
 ## Appendix A: Evidence Status Summary
 
 | Area | Status | Notes |
 | --- | --- | --- |
-| Audience and deliverable scope | Confirmed | Leadership-facing, discovery-only |
+| Audience and deliverable scope | Confirmed | Leadership-facing, discovery plus pilot implementation premise |
 | Languages in scope | Confirmed | Java/Kotlin, JavaScript/TypeScript, Python, C#/.NET |
 | CI/CD posture | Confirmed | Mixed environment assumed |
 | SaaS acceptability | Confirmed | SaaS tools permitted |
@@ -342,3 +408,5 @@ These topics should be handled in later phases once discovery evidence is comple
 | Build-system inventory | Pending | Requires engineering input |
 | CI/CD platform map | Pending | Requires platform or DevOps input |
 | Governance model | Pending | Requires AppSec and engineering alignment |
+| Pilot repository selection | Pending | Requires leadership and team alignment |
+| Pilot success criteria | Pending | Requires explicit definition before execution |

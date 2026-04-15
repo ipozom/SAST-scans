@@ -2,9 +2,9 @@
 
 ## Resumen Ejecutivo
 
-Este documento recoge el descubrimiento tecnico inicial requerido para implementar escaneos de Static Application Security Testing (SAST) en un portafolio de aplicaciones que incluye Java/Kotlin, JavaScript/TypeScript, Python y C#/.NET. La audiencia prevista es el liderazgo de ingenieria y de seguridad.
+Este documento recoge el descubrimiento tecnico inicial y la premisa de implementacion de un piloto requeridos para implementar escaneos de Static Application Security Testing (SAST) en un portafolio de aplicaciones que incluye Java/Kotlin, JavaScript/TypeScript, Python y C#/.NET. La audiencia prevista es el liderazgo de ingenieria y de seguridad.
 
-El entregable actual es solo de descubrimiento. No recomienda un proveedor especifico ni define un plan de implementacion. Su objetivo es establecer los criterios de evaluacion tecnica, las restricciones operativas, los riesgos clave y las decisiones de liderazgo necesarias antes de la ejecucion.
+El entregable actual cubre descubrimiento mas preparacion para un piloto de SAST. No recomienda un proveedor especifico ni define un plan completo de despliegue empresarial. Su objetivo es establecer los criterios de evaluacion tecnica, las restricciones operativas, los guardrails del piloto, los riesgos clave y las decisiones de liderazgo necesarias antes de la ejecucion del piloto.
 
 En esta etapa, la direccion confirmada es la siguiente:
 
@@ -13,8 +13,9 @@ En esta etapa, la direccion confirmada es la siguiente:
 - el entorno de CI/CD es mixto y no esta estandarizado en una sola plataforma
 - una modalidad de entrega basada en SaaS es aceptable
 - las expectativas de cobertura de OWASP Top 10 y CWE deben enmarcar la discusion de seguridad
+- el primer hito de ejecucion debe ser un piloto de SAST sobre repositorios representativos
 
-La brecha principal no es conceptual. Es de evidencia. La organizacion aun necesita un inventario verificado de repositorios, sistemas de compilacion, flujos de CI/CD, limites de ownership y controles actuales del SDLC seguro antes de poder iniciar una fase creible de implementacion o seleccion de herramientas.
+La brecha principal no es conceptual. Es de evidencia. La organizacion aun necesita un inventario verificado de repositorios, sistemas de compilacion, flujos de CI/CD, limites de ownership, candidatos para el piloto y controles actuales del SDLC seguro antes de poder iniciar una fase creible de piloto, implementacion mas amplia o seleccion de herramientas.
 
 ## Objetivo del Documento
 
@@ -22,8 +23,21 @@ Este documento tiene como finalidad:
 
 - definir el descubrimiento tecnico y operativo necesario para la adopcion de SAST
 - explicar las consideraciones multilenguaje y multiplataforma que afectan la viabilidad de la implementacion
-- identificar las decisiones que el liderazgo debe tomar antes de la ejecucion
+- identificar las condiciones minimas requeridas para implementar un piloto de SAST
+- identificar las decisiones que el liderazgo debe tomar antes de la ejecucion del piloto
 - establecer los limites de lo que se incluye en esta fase y lo que se difiere
+
+## Premisa de Implementacion del Piloto
+
+El primer hito de implementacion debe ser un piloto de SAST en lugar de un despliegue sobre todo el portafolio. Se espera que el piloto valide el modelo de entrega, el impacto en el flujo de trabajo de desarrollo y la preparacion del modelo de gobierno antes de que la organizacion se comprometa con una adopcion mas amplia.
+
+El piloto debe disenarse para:
+
+- ejecutarse sobre un numero limitado de repositorios representativos en lugar de cubrir todo el portafolio
+- medir la duracion del escaneo, la calidad de la senal y el impacto en el flujo de trabajo de desarrollo en condiciones reales de CI
+- confirmar que los hallazgos pueden exponerse, triarse, suprimirse y reportarse de extremo a extremo
+- identificar el minimo de ajuste y configuracion necesarios antes de escalar
+- producir una recomendacion clara de avanzar, ajustar o detener para la siguiente fase
 
 ## Alcance Confirmado y Supuestos
 
@@ -34,12 +48,13 @@ Los siguientes insumos de descubrimiento ya estan confirmados:
 | Tema | Posicion actual |
 | --- | --- |
 | Audiencia | Liderazgo de ingenieria y liderazgo de seguridad |
-| Tipo de entregable | Solo descubrimiento y evaluacion |
+| Tipo de entregable | Descubrimiento, evaluacion y premisa de implementacion de piloto |
 | Postura frente a herramientas | Neutral respecto a proveedores |
 | Lenguajes en alcance | Java/Kotlin, JavaScript/TypeScript, Python, C#/.NET |
 | Postura de CI/CD | Plataformas multiples o mixtas |
 | Supuesto de alojamiento | Las herramientas SaaS son aceptables |
 | Marco de seguridad | Cobertura de OWASP Top 10 y CWE |
+| Objetivo inicial de implementacion | Piloto de SAST sobre repositorios representativos |
 
 ### Supuestos de Trabajo
 
@@ -49,6 +64,7 @@ Los siguientes supuestos se utilizan para orientar el descubrimiento hasta que s
 - al menos una parte del portafolio utiliza control de cambios basado en pull requests
 - distintos equipos pueden tener sistemas de compilacion diferentes o niveles distintos de madurez en pipelines
 - el liderazgo tendra que equilibrar la cobertura de seguridad frente al impacto en el flujo de trabajo de desarrollo
+- la primera implementacion debe mantenerse limitada a un piloto y no a una cobertura completa del portafolio
 
 Estos supuestos deben validarse durante la fase de recopilacion de evidencia.
 
@@ -65,6 +81,7 @@ Evidencia requerida:
 - criticidad del repositorio o nivel de prioridad
 - tipo de servicio, como API, aplicacion web, proceso batch o libreria
 - ownership por equipo o dominio de negocio
+- candidatura al piloto para cada repositorio o grupo de aplicaciones
 
 Por que esto importa:
 
@@ -79,6 +96,7 @@ Evidencia requerida:
 - requisitos de restauracion de paquetes y cualquier registro privado
 - presencia de monorepos, codigo generado o librerias compartidas
 - duracion promedio del build y causas comunes de inestabilidad
+- disponibilidad de runners de CI o soporte de contenedores para la ejecucion del piloto
 
 Por que esto importa:
 
@@ -93,6 +111,7 @@ Evidencia requerida:
 - patrones de validacion en pull requests frente a jobs por rama o programados
 - politicas de bloqueo actuales en pipelines
 - patrones de retencion de artefactos y publicacion de resultados
+- capacidad para publicar resultados del escaneo en PRs, artefactos o vistas de code scanning durante el piloto
 
 Por que esto importa:
 
@@ -108,14 +127,44 @@ Evidencia requerida:
 - modelo de ownership para remediacion
 - proceso de excepciones o dispensas
 - requisitos de reporting para liderazgo o auditoria
+- owner de soporte del piloto y ruta de escalamiento
 
 Por que esto importa:
 
 - la adopcion de SAST fracasa si existen hallazgos sin un modelo operativo claro para triage, ownership y manejo de excepciones
 
+## Requisitos para Definir el Alcance del Piloto
+
+La documentacion debe soportar explicitamente la implementacion de un piloto de SAST. Eso requiere mas que un descubrimiento generico. Requiere una definicion clara del alcance del piloto, de sus criterios de exito y de sus guardrails operativos.
+
+### Criterios para Seleccionar Pilotos Candidatos
+
+- el repositorio se mantiene activamente y tiene un owner claro
+- el pipeline de CI es lo bastante estable como para medir el impacto del escaneo de forma confiable
+- la base de codigo es representativa de una combinacion relevante de lenguaje o framework dentro del portafolio
+- el equipo esta dispuesto a participar en triage y retroalimentacion durante el piloto
+- el pipeline puede publicar resultados o artefactos sin workarounds mayores especificos de plataforma
+
+### Criterios de Exito del Piloto
+
+- el escaneo se ejecuta de forma confiable en el flujo de CI seleccionado
+- los hallazgos se exponen con categorias de severidad y confianza que resulten utiles
+- la duracion del escaneo se mantiene dentro del presupuesto de tiempo acordado para el piloto
+- el equipo participante puede revisar y triar resultados dentro de su flujo normal de trabajo
+- los falsos positivos, las supresiones y las excepciones se mantienen manejables a nivel operativo
+- el piloto produce una recomendacion clara sobre si escalar, ajustar o detener
+
+### Guardrails Operativos del Piloto
+
+- comenzar sin bloqueo salvo que el liderazgo apruebe explicitamente una postura mas estricta
+- limitar el alcance inicial a repositorios representativos en lugar de cobertura sobre todo el portafolio
+- definir un owner para configuracion, revision de resultados y soporte
+- preservar la estabilidad de entrega definiendo una ruta de contingencia si el escaneo falla o produce ruido inaceptable
+- acotar el piloto en el tiempo para que los resultados se revisen rapido y las decisiones no se difieran indefinidamente
+
 ## Criterios de Evaluacion Tecnica
 
-El enfoque futuro de SAST debe evaluarse contra los siguientes criterios tecnicos.
+El enfoque futuro de SAST y el modelo de implementacion del piloto deben evaluarse contra los siguientes criterios tecnicos.
 
 ### Expectativas Transversales entre Lenguajes
 
@@ -127,6 +176,7 @@ Expectativas minimas en todo el portafolio:
 - salida que pueda publicarse en un formato portable como SARIF
 - modos de escaneo utiles tanto para la evaluacion de linea base como para retroalimentacion en pull requests
 - controles de politica que puedan distinguir severidad, confianza y categorias de reglas
+- suficiente flexibilidad de configuracion para soportar un piloto controlado antes de una estandarizacion mas amplia
 
 ### Consideraciones Especificas por Lenguaje
 
@@ -192,7 +242,7 @@ Preguntas de descubrimiento:
 
 ## Patrones de Arquitectura de Integracion
 
-Dado que el entorno de CI/CD es mixto, el descubrimiento debe favorecer patrones portables en lugar de detalle de implementacion especifico por pipeline.
+Dado que el entorno de CI/CD es mixto, el diseno del piloto debe favorecer patrones portables en lugar de detalle de implementacion especifico por pipeline.
 
 ### Patrones Preferidos Independientes de la Plataforma
 
@@ -201,6 +251,14 @@ Dado que el entorno de CI/CD es mixto, el descubrimiento debe favorecer patrones
 - salida de resultados estandarizada, preferiblemente SARIF o un formato equivalente legible por maquina
 - evaluacion de politicas guiada por API para que la logica de enforcement no quede codificada de forma diferente en cada sistema CI
 - modos separados para escaneos de pull request, escaneos completos de linea base y reescaneos programados
+
+### Guia de Implementacion del Piloto
+
+- comenzar con uno o pocos repositorios representativos en lugar de intentar una cobertura transversal inmediata
+- preferir ejecucion sin bloqueo con publicacion de resultados en las primeras iteraciones del piloto
+- mantener la configuracion lo suficientemente consistente entre repositorios piloto para poder comparar el comportamiento del escaneo
+- validar la publicacion de resultados dentro del flujo que el equipo piloto ya utiliza, como feedback en PRs, artefactos o interfaces de code scanning
+- definir que ocurre si el escaneo falla, supera el tiempo esperado o produce ruido excesivo antes de habilitar el piloto en pipelines compartidos
 
 ### Areas de Decision para la Integracion
 
@@ -229,7 +287,7 @@ SAST no es solo una capacidad de escaneo. Es un modelo operativo. Por tanto, el 
 
 ### Consideraciones para una Adopcion Temprana
 
-Para un despliegue inicial, la organizacion deberia esperar una postura de enforcement por fases en lugar de un bloqueo estricto e inmediato en todos los repositorios. Esto aun no es una decision de implementacion, pero si es un hallazgo de descubrimiento: la calidad de los primeros hallazgos y la madurez de los procesos de ownership suelen determinar si el bloqueo puede tener exito sin generar friccion excesiva.
+Para un piloto, la organizacion deberia esperar una postura de enforcement por fases en lugar de un bloqueo estricto e inmediato en todos los repositorios. Esta es una premisa de implementacion del piloto: la calidad de los primeros hallazgos y la madurez de los procesos de ownership suelen determinar si el bloqueo puede tener exito sin generar friccion excesiva.
 
 ## Riesgos y Tradeoffs
 
@@ -265,20 +323,22 @@ Al momento de redactar este documento, las siguientes brechas siguen abiertas:
 - no se ha documentado un mapa de plataformas de CI/CD por equipo o segmento del portafolio
 - no se ha confirmado un modelo actual de ownership para remediacion
 - no se ha elegido una estrategia de linea base para hallazgos existentes
+- no se han nominado repositorios piloto ni equipos participantes
+- no se han definido metricas de exito ni postura de contingencia del piloto
 
-Estas brechas no bloquean la documentacion de descubrimiento, pero si bloquean un plan de implementacion defendible o una evaluacion formal de proveedores.
+Estas brechas no bloquean la documentacion de descubrimiento, pero si bloquean un piloto defendible, un plan de implementacion mas amplio o una evaluacion formal de proveedores.
 
 ## Decisiones Requeridas del Liderazgo
 
 El liderazgo debe usar este documento para orientar las siguientes decisiones.
 
-### 1. Alcance de Cobertura
+### 1. Alcance de Cobertura del Piloto
 
-Debe introducirse SAST para todos los repositorios, solo para aplicaciones tier-1 o solo para nuevo desarrollo estrategico?
+Que repositorios o grupos de aplicaciones deben participar en el piloto y que los hace lo suficientemente representativos como para informar una decision mas amplia?
 
-### 2. Postura de Enforcement
+### 2. Postura de Enforcement del Piloto
 
-Debe la primera fase de implementacion ser solo informativa, basada en advertencias o bloqueante para niveles de severidad seleccionados?
+Debe el piloto comenzar como informativo, basado en advertencias o bloqueante para niveles de severidad seleccionados?
 
 ### 3. Modelo de Ownership
 
@@ -288,51 +348,57 @@ Seran AppSec, ingenieria de plataforma o los equipos de aplicacion quienes posea
 
 Que nivel de tiempo adicional de build, ruido en revisiones y sobrecarga de politicas es aceptable a cambio de detectar vulnerabilidades antes?
 
-### 5. Mandato para la Siguiente Fase
+### 5. Criterios de Exito y Salida del Piloto
 
-Debe la organizacion pasar a una fase formal de evaluacion de producto y planificacion de implementacion una vez que se complete la matriz de evidencia?
+Que umbrales objetivos definiran el exito del piloto, como duracion aceptable del escaneo, calidad de senal y cierre de triage?
 
-## Actividades de Validacion para la Siguiente Fase
+### 6. Mandato Post-Piloto
 
-Una vez completada la evidencia de descubrimiento, el equipo de ejecucion debe validar la factibilidad mediante una evaluacion controlada en lugar de pasar directamente a un despliegue empresarial.
+Debe la organizacion avanzar hacia un despliegue mas amplio, hacia mas ajustes o hacia una evaluacion formal de producto despues de completar el piloto?
 
-Actividades de validacion recomendadas:
+## Actividades de Implementacion y Validacion del Piloto
 
-1. seleccionar repositorios representativos de cada familia de lenguaje dentro del alcance
-2. probar si los enfoques candidatos pueden producir hallazgos utiles alineados con las expectativas de OWASP y CWE
-3. medir el impacto en la duracion de pull requests y escaneos completos frente a las lineas base actuales de pipeline
-4. revisar una muestra de hallazgos de alta severidad con ingenieros senior para estimar tasas de verdaderos positivos y falsos positivos
-5. confirmar que los resultados pueden exponerse dentro de los flujos de trabajo de desarrollo sin forzar un manejo especifico por plataforma en cada sistema CI
-6. verificar que los flujos de triage, supresion y excepciones estan operativos antes de habilitar cualquier politica de bloqueo
+Una vez completada la evidencia minima de descubrimiento, el equipo de ejecucion debe validar la factibilidad implementando un piloto controlado de SAST en lugar de pasar directamente a un despliegue empresarial.
 
-## Siguientes Acciones Recomendadas de Descubrimiento
+Actividades recomendadas para el piloto:
 
-El siguiente paso inmediato no es la seleccion de producto. Es la recopilacion de evidencia.
+1. seleccionar repositorios representativos y confirmar equipos participantes y owners
+2. implementar el escaneo piloto en el flujo de CI elegido usando una postura sin bloqueo salvo aprobacion explicita en otro sentido
+3. probar si el enfoque del piloto produce hallazgos utiles alineados con las expectativas de OWASP y CWE
+4. medir el impacto en la duracion de pull requests y escaneos completos frente a las lineas base actuales de pipeline
+5. revisar una muestra de hallazgos de alta severidad con ingenieros senior para estimar tasas de verdaderos positivos y falsos positivos
+6. confirmar que los resultados pueden exponerse dentro de los flujos de trabajo de desarrollo sin forzar un manejo especifico por plataforma en cada sistema CI
+7. verificar que los flujos de triage, supresion, excepciones y reporting estan operativos antes de considerar cualquier politica de bloqueo
+
+## Siguientes Acciones Recomendadas
+
+El siguiente paso inmediato es completar la evidencia minima necesaria para lanzar un piloto controlado de SAST.
 
 Acciones recomendadas:
 
 1. completar la matriz de evidencia con datos de repositorios, lenguajes, frameworks, build y CI/CD
-2. confirmar los flujos actuales de ownership y excepciones con stakeholders de seguridad y plataforma
-3. identificar una muestra representativa de repositorios de cada familia de lenguaje para validacion futura
-4. definir que considera aceptable el liderazgo en terminos de calidad de senal e impacto en pipeline antes de iniciar cualquier evaluacion de herramientas
+2. nominar repositorios piloto y confirmar equipos participantes y owners
+3. confirmar flujos de ownership, excepciones y soporte con stakeholders de seguridad y plataforma
+4. definir metricas de exito del piloto, reglas de contingencia e impacto aceptable en pipeline antes de comenzar la ejecucion del piloto
+5. ejecutar el piloto y usar sus resultados para decidir un despliegue mas amplio, ajustes adicionales o una evaluacion formal de producto
 
 ## Limites de Alcance y Exclusiones
 
-Este documento excluye:
+Este documento incluye el alcance de implementacion del piloto y los criterios de preparacion, pero excluye:
 
 - comparaciones de proveedores o recomendaciones de producto
-- pasos de implementacion o ejemplos de CI
-- secuenciacion del despliegue y fechas objetivo
+- runbooks completos de implementacion empresarial o ejemplos de CI para todas las plataformas
+- secuenciacion del despliegue empresarial y fechas objetivo
 - flujos detallados de remediacion
 - analisis de licenciamiento o presupuesto
 
-Estos temas deben tratarse en fases posteriores una vez que la evidencia de descubrimiento este completa y el liderazgo haya confirmado la direccion operativa.
+Estos temas deben tratarse en fases posteriores una vez que la evidencia de descubrimiento este completa, el piloto se haya ejecutado y el liderazgo haya confirmado la direccion operativa.
 
 ## Anexo A: Resumen del Estado de la Evidencia
 
 | Area | Estado | Notas |
 | --- | --- | --- |
-| Audiencia y alcance del entregable | Confirmado | Enfocado en liderazgo, solo descubrimiento |
+| Audiencia y alcance del entregable | Confirmado | Enfocado en liderazgo, descubrimiento mas premisa de implementacion de piloto |
 | Lenguajes en alcance | Confirmado | Java/Kotlin, JavaScript/TypeScript, Python, C#/.NET |
 | Postura de CI/CD | Confirmado | Se asume un entorno mixto |
 | Aceptabilidad de SaaS | Confirmado | Se permiten herramientas SaaS |
@@ -342,3 +408,5 @@ Estos temas deben tratarse en fases posteriores una vez que la evidencia de desc
 | Inventario de sistemas de build | Pendiente | Requiere insumos de ingenieria |
 | Mapa de plataformas CI/CD | Pendiente | Requiere insumos de plataforma o DevOps |
 | Modelo de gobierno | Pendiente | Requiere alineacion entre AppSec e ingenieria |
+| Seleccion de repositorios piloto | Pendiente | Requiere alineacion entre liderazgo y equipos |
+| Criterios de exito del piloto | Pendiente | Requiere definicion explicita antes de la ejecucion |
