@@ -15,6 +15,7 @@ The current deliverable is intentionally limited to discovery:
 - `docs/sast-technical-discovery.md` - primary discovery and assessment document
 - `docs/sast-technical-discovery.es.md` - Spanish version of the primary discovery and assessment document
 - `docs/sast-discovery-evidence-matrix.md` - evidence collection matrix for validating assumptions and completing the current-state assessment
+- `docs/sast-discovery-evidence-matrix.es.md` - Spanish version of the evidence collection matrix
 
 ## Scope Boundaries
 
